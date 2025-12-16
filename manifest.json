@@ -1,0 +1,21 @@
+{
+    "name": "Voice Command Camera",
+    "short_name": "VCCam",
+    "start_url": ".",
+    "display": "fullscreen",
+    "background_color": "#000000",
+    "theme_color": "#000000",
+    "description": "A voice-controlled camera application.",
+    "icons": [
+        {
+            "src": "icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

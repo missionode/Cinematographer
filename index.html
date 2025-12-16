@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Command Camera</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div id="setup-container">
+        <h1>One-Time Setup</h1>
+        <p>Please select a folder where your videos will be saved automatically.</p>
+        <button id="setup-button" class="setup-btn">Select Save Folder</button>
+    </div>
+
+    <div id="camera-container" style="display: none;">
+        <video id="camera-view" autoplay playsinline></video>
+        <div id="status-message">Initializing...</div>
+        <button id="record-button"></button>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cameraView = document.getElementById('camera-view');
     const statusMessage = document.getElementById('status-message');
     const recordButton = document.getElementById('record-button');
+    const restartVoiceButton = document.getElementById('restart-voice-button'); // New element
 
     let stream = null;
     let mediaRecorder = null;
@@ -20,7 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
     async function openDB() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, 1);
-            request.onerror = () => reject("Error opening DB");
+            request.onerror = (event) => {
+                console.error("IndexedDB error:", event.target.error);
+                reject("Error opening DB");
+            };
             request.onsuccess = () => resolve(request.result);
             request.onupgradeneeded = event => {
                 const db = event.target.result;
@@ -127,6 +131,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function isMobileDevice() {
+        return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
     // Speech Recognition with enhanced logging
     function initializeSpeechRecognition() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -135,7 +143,19 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const recognition = new SpeechRecognition();
+        let recognition = null; // Declare recognition in a scope accessible by restartVoiceControl
+
+        function restartVoiceControl() {
+            if (recognition) {
+                recognition.start();
+                // When restarted, if not recording, update status to 'Listening...'
+                if (!isRecording) statusMessage.textContent = 'Listening...';
+                restartVoiceButton.style.display = 'none'; // Hide the restart button
+            }
+        }
+        window.restartVoiceControl = restartVoiceControl; // Expose to global scope
+
+        recognition = new SpeechRecognition();
         recognition.lang = 'en-US';
         recognition.continuous = true;
         recognition.interimResults = false;
@@ -143,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
         recognition.onstart = () => {
             console.log('Speech recognition started.');
             if (!isRecording) statusMessage.textContent = 'Listening...';
+            restartVoiceButton.style.display = 'none'; // Hide the restart button when recognition starts
         };
 
         recognition.onresult = (event) => {
@@ -160,16 +181,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         recognition.onerror = (event) => {
             console.error('Speech recognition error:', event.error);
-        };
-
-        recognition.onend = () => {
-            console.log('Speech recognition service ended. Restarting...');
-            if (!isRecording && cameraContainer.style.display !== 'none') { // Only restart if not recording and camera UI is active
-                 recognition.start();
+            if (isMobileDevice()) {
+                statusMessage.textContent = 'Voice control stopped. Tap to restart.';
+                restartVoiceButton.style.display = 'block'; // Show the restart button on error
             }
         };
 
-        recognition.start();
+        recognition.onend = () => {
+            console.log('Speech recognition service ended.');
+            if (!isRecording && cameraContainer.style.display !== 'none') {
+                if (isMobileDevice()) {
+                    statusMessage.textContent = 'Voice control stopped. Tap to restart.';
+                    restartVoiceButton.style.display = 'block'; // Show the restart button
+                } else {
+                    console.log('Restarting speech recognition...');
+                    restartVoiceButton.style.display = 'none'; // Hide the restart button
+                    restartVoiceControl();
+                }
+            }
+        };
+
+        restartVoiceControl(); // Start recognition initially
     }
 
     // Recording Controls
@@ -196,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else { // Countdown finished
                 clearInterval(countdownInterval);
                 statusMessage.textContent = 'Recording...';
-                speak('action'); // Voice cue right before recording starts
+                playBeep(); // Beep instead of speaking '0' or 'action'
 
                 recordedChunks = [];
                 mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' });

@@ -52,6 +52,26 @@ body, html {
     transition: all 0.2s ease-in-out;
 }
 
+#restart-voice-button {
+    position: absolute;
+    bottom: 110px; /* Position above the record button */
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    background-color: #007bff; /* A blue color */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    z-index: 10;
+    transition: background-color 0.3s;
+}
+
+#restart-voice-button:hover {
+    background-color: #0056b3;
+}
+
 #record-button.recording {
     background-color: #ff4141;
     border-color: #ff4141;
